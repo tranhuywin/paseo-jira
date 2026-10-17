@@ -2,6 +2,8 @@
 
 A [Paseo](https://paseo.sh) plugin that lists your Jira Cloud tickets and creates a worktree workspace from any of them, with the branch, worktree name and title suggested from the ticket.
 
+![Jira ticket list with sample issues](assets/ticket-list.png)
+
 ## Features
 
 - **Jira screen** in the sidebar: a table of tickets with key, title, context (parent epic or project), assignee, status and last update.
@@ -61,6 +63,7 @@ The slug drops bracketed tags such as `[BE]`, strips accents, removes common sto
 
 - The API token is stored as plain JSON in the plugin settings under the daemon's Paseo home (`~/.paseo`). Anyone with access to that machine account can read it.
 - Jira requests run in the daemon process and go only to the configured Jira site, through the Jira Cloud REST API v3.
+- When *Start agent* is on, Paseo sends the configured prompt, with the ticket key filled in, to the selected agent provider. It is off by default.
 
 ## Limits
 

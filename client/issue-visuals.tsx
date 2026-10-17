@@ -28,7 +28,7 @@ export const STATUS_CATEGORY_LABELS: Record<StatusCategory, string> = {
 };
 
 export function getStatusColor({ theme, category }: { theme: PluginTheme; category: StatusCategory }): string {
-  if (category === "indeterminate") return theme.colors.accent;
+  if (category === "indeterminate") return theme.colors.statusWarning;
   if (category === "done") return theme.colors.statusSuccess;
   return theme.colors.foregroundMuted;
 }

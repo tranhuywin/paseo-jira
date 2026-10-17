@@ -1,7 +1,7 @@
 {
   "name": "paseo-jira",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Paseo plugin: list Jira Cloud tickets and create worktree workspaces from them",
   "repository": {
     "type": "git",

@@ -13,4 +13,4 @@ Open Settings → Plugins → Jira and enter your Atlassian site URL, email and 
 
 ## Data flow and limits
 
-Jira requests go from the daemon to your Jira site only, through the Jira Cloud REST API v3. Each query returns the 50 most recently updated tickets. Jira Server and Data Center are not supported.
+Jira requests go from the daemon to your Jira site only, through the Jira Cloud REST API v3. When Start agent is on, Paseo sends the configured prompt, with the ticket key filled in, to the selected agent provider. It is off by default. Each query returns the 50 most recently updated tickets. Jira Server and Data Center are not supported.

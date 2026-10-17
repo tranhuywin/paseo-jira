@@ -1,0 +1,9 @@
+{
+  "id": "paseo-jira",
+  "media": [],
+  "requirements": {
+    "paseo": ">=0.12.0-beta.1"
+  },
+  "name": "Jira",
+  "description": "List Jira Cloud tickets and create worktree workspaces from them"
+}

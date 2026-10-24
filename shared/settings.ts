@@ -15,6 +15,8 @@ export const jiraSettings = defineSettings({
     bugBranchPrefix: z.string().default("fix"),
     featureBranchPrefix: z.string().default("feature"),
     baseRef: z.string().default("main"),
+    namingPrompt: z.string().default(""),
+    namingProvider: z.string().default("claude/claude-haiku-5-5"),
     agentProvider: z.string().default("claude/claude-opus-5-5"),
     agentPromptTemplate: z.string().default("Work on Jira ticket {key}."),
   }),

@@ -39,6 +39,12 @@ const WORKTREE_FIELDS: SettingsField[] = [
   { field: "bugBranchPrefix", label: "Bug branch prefix", hint: "Branch becomes <prefix>/<KEY>-<slug>." },
   { field: "featureBranchPrefix", label: "Other branch prefix" },
   { field: "baseRef", label: "Base ref" },
+  {
+    field: "namingPrompt",
+    label: "Naming prompt",
+    hint: "Empty uses the prefixes above. Otherwise the naming model gets this prompt plus the ticket key, type and summary, and returns the branch, worktree and title.",
+  },
+  { field: "namingProvider", label: "Naming model", hint: "provider/model. A fast, cheap model is enough." },
   { field: "agentProvider", label: "Agent provider", hint: "provider/model" },
   { field: "agentPromptTemplate", label: "Agent prompt", hint: "{key} becomes the ticket key." },
 ];
@@ -98,7 +104,16 @@ export function JiraSettingsScreen({ theme }: PluginSurfaceProps) {
   return (
     <View style={{ gap: 24 }}>
       <SettingsSection title="Connection">
-        <SettingsCard>{renderFields(CONNECTION_FIELDS)}</SettingsCard>
+        <SettingsCard>
+          {renderFields(CONNECTION_FIELDS)}
+          <SettingsAction
+            label="Test connection"
+            hint="Uses the saved values."
+            actionLabel={isTesting ? "Testing…" : "Test"}
+            disabled={isTesting || Boolean(draft)}
+            onPress={() => void handleTestConnection()}
+          />
+        </SettingsCard>
       </SettingsSection>
       <SettingsSection title="Queries">
         <SettingsCard>{renderFields(QUERY_FIELDS)}</SettingsCard>
@@ -113,13 +128,6 @@ export function JiraSettingsScreen({ theme }: PluginSurfaceProps) {
           actionLabel={settings.saving ? "Saving…" : "Save"}
           disabled={!draft || settings.saving}
           onPress={() => void handleSave()}
-        />
-        <SettingsAction
-          label="Test connection"
-          hint="Uses the saved values."
-          actionLabel={isTesting ? "Testing…" : "Test"}
-          disabled={isTesting || Boolean(draft)}
-          onPress={() => void handleTestConnection()}
         />
       </SettingsCard>
     </View>

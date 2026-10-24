@@ -1,6 +1,7 @@
 import type { PluginTheme } from "@getpaseo/plugin";
 import { Modal } from "@getpaseo/plugin/client/react-native";
 import { ExternalLink, SettingsCard, SettingsInput, SettingsSelect, SettingsSwitch } from "@getpaseo/plugin/client/ui";
+import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { JiraIssue } from "../shared/jira";
@@ -37,11 +38,15 @@ function MetaRow({ theme, label, children }: { theme: PluginTheme; label: string
 
 function IssueDetail({ theme, issue, starter, onClose }: IssueDetailModalProps & { issue: JiraIssue }) {
   const [draftOverrides, setDraftOverrides] = useState<Partial<WorktreeDraft>>({});
-  const defaultDraft = starter.buildDefaultDraft(issue);
+  const agentNames = useQuery({ ...starter.buildNamesQuery(issue), enabled: starter.isAgentNamingEnabled });
+  const defaultDraft = starter.buildDefaultDraft(issue, agentNames.data);
   const valueText = { color: theme.colors.foreground, fontSize: 13 };
 
   if (!defaultDraft) {
     return <Text style={{ color: theme.colors.foregroundMuted }}>Loading projects…</Text>;
+  }
+  if (starter.isAgentNamingEnabled && agentNames.isPending) {
+    return <Text style={{ color: theme.colors.foregroundMuted }}>Suggesting names…</Text>;
   }
 
   const draft = { ...defaultDraft, ...draftOverrides };
@@ -88,6 +93,11 @@ function IssueDetail({ theme, issue, starter, onClose }: IssueDetailModalProps &
       <Text style={{ color: theme.colors.foregroundMuted, fontSize: 11, fontWeight: "600", letterSpacing: 0.5 }}>
         WORKTREE
       </Text>
+      {agentNames.error ? (
+        <Text style={{ color: theme.colors.foregroundMuted, fontSize: 12 }}>
+          Naming agent failed, using the prefix rules: {agentNames.error.message}
+        </Text>
+      ) : null}
       <SettingsCard>
         <SettingsSelect
           label="Project"
@@ -111,7 +121,7 @@ function IssueDetail({ theme, issue, starter, onClose }: IssueDetailModalProps &
         accessibilityRole="button"
         accessibilityLabel={`Start workspace for ${issue.key}`}
         disabled={!canStart}
-        onPress={() => starter.start(draft, { onSuccess: onClose })}
+        onPress={() => starter.start({ issue, draft }, { onSuccess: onClose })}
         style={{
           alignItems: "center",
           paddingVertical: 10,

@@ -166,13 +166,13 @@ export function IssuesScreen({ theme, layout, navigation, openSettings }: Issues
 
   function renderStartButton(issue: JiraIssue) {
     const isStarting = starter.startingIssueKey === issue.key;
-    const draft = starter.buildDefaultDraft(issue);
+    const canStart = Boolean(starter.buildDefaultDraft(issue)) && !starter.startingIssueKey;
     return (
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Start workspace for ${issue.key}`}
-        disabled={!draft || Boolean(starter.startingIssueKey)}
-        onPress={() => draft && starter.start(draft)}
+        disabled={!canStart}
+        onPress={() => starter.start({ issue })}
         style={({ pressed }) => [styles.startButton, (pressed || isStarting) && { backgroundColor: theme.colors.surface2 }]}
       >
         <Text style={styles.startText}>{isStarting ? "Starting…" : "Start →"}</Text>

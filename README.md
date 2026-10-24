@@ -11,8 +11,8 @@ A [Paseo](https://paseo.sh) plugin that lists your Jira Cloud tickets and create
 - **Jira screen** in the sidebar: a table of tickets with key, title, context (parent epic or project), assignee, status and last update.
 - **Two scopes**: *Assigned to me* and *Search all*. Type a key such as `ABC-123` to jump to that ticket, or any text for a full-text search.
 - **Status filter chips** with counts (In progress, To do, Done), grouped by Jira status category, so custom workflow names still get the right colour.
-- **Start →** on every row creates a workspace in one click using the suggested names.
-- **Ticket detail**: open a ticket to review its metadata, edit the branch, worktree name, title, base ref and project, and optionally start an agent with a prompt.
+- **Start →** on every row creates a workspace in one click using the suggested names and opens an empty agent chat in it.
+- **Ticket detail**: open a ticket to review its metadata, edit the branch, worktree name, title, base ref and project, and turn off *Start agent* to only create the workspace.
 - **Command Center**: `Jira: worktree from ticket` opens the screen from ⌘K.
 
 ## Requirements
@@ -46,6 +46,8 @@ Open Settings → Plugins → Jira, fill in the fields below, press **Save**, th
 | Bug branch prefix | `fix` | Prefix for tickets of type Bug |
 | Other branch prefix | `feature` | Prefix for every other type |
 | Base ref | `main` | Ref the new branch starts from |
+| Naming prompt | empty | Empty uses the prefixes. Otherwise the naming model gets this prompt with the ticket key, type and summary and returns the branch, worktree and title |
+| Naming model | `claude/claude-haiku-5-5` | `provider/model` used for the naming prompt |
 | Agent provider | `claude/claude-opus-5-5` | `provider/model` used when *Start agent* is on |
 | Agent prompt | `Work on Jira ticket {key}.` | First prompt; `{key}` becomes the ticket key |
 
@@ -61,11 +63,14 @@ For `ABC-123` "Login fails when the password contains a quote" of type Bug:
 
 The slug drops bracketed tags such as `[BE]`, strips accents, removes common stop words and keeps the first five words. Every field stays editable in the ticket detail.
 
+With a *Naming prompt* set, a short-lived agent on the naming model writes the three names instead, from your prompt and the ticket key, type and summary. It runs once per ticket in the project root, takes a few seconds, and is archived as soon as it answers. If it fails, the ticket detail falls back to the prefix rules and **Start →** on a row shows the error.
+
 ## Security and data
 
 - The API token is stored as plain JSON in the plugin settings under the daemon's Paseo home (`~/.paseo`). Anyone with access to that machine account can read it.
 - Jira requests run in the daemon process and go only to the configured Jira site, through the Jira Cloud REST API v3.
-- When *Start agent* is on, Paseo sends the configured prompt, with the ticket key filled in, to the selected agent provider. It is off by default.
+- **Start** opens an agent chat without sending anything; nothing reaches the agent provider until you send a message.
+- With a *Naming prompt* set, the prompt and the ticket key, type and summary go to the naming model when you open a ticket or press **Start →**.
 
 ## Limits
 

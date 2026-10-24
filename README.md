@@ -1,5 +1,7 @@
 # paseo-jira
 
+![version](https://img.shields.io/github/package-json/v/tranhuywin/paseo-jira)
+
 A [Paseo](https://paseo.sh) plugin that lists your Jira Cloud tickets and creates a worktree workspace from any of them, with the branch, worktree name and title suggested from the ticket.
 
 ![Jira ticket list with sample issues](assets/ticket-list.png)

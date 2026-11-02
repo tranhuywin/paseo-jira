@@ -12,7 +12,7 @@ A [Paseo](https://paseo.sh) plugin that lists your Jira Cloud tickets and create
 - **Two scopes**: *Assigned to me* and *Search all*. Type a key such as `ABC-123` to jump to that ticket, or any text for a full-text search.
 - **Status filter chips** with counts (In progress, To do, Done), grouped by Jira status category, so custom workflow names still get the right colour.
 - **Start →** on every row creates a workspace in one click using the suggested names and opens an empty agent chat in it.
-- **Ticket detail**: open a ticket to review its metadata, edit the branch, worktree name, title, base ref and project, and turn off *Start agent* to only create the workspace.
+- **Ticket detail**: open a ticket to review its metadata, edit the branch, worktree name, title, base ref and project, pick the agent's model, thinking level and mode, and turn off *Start agent* to only create the workspace.
 - **Command Center**: `Jira: worktree from ticket` opens the screen from ⌘K.
 
 ## Requirements

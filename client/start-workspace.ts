@@ -35,6 +35,12 @@ export interface WorktreeDraft {
   title: string;
   baseRef: string;
   shouldStartAgent: boolean;
+  /** `provider/model`, like the Agent provider setting. */
+  agentProvider: string;
+  /** Empty uses the model default. */
+  agentThinking: string;
+  /** Empty uses the provider default. */
+  agentMode: string;
 }
 
 interface StartTicketInput {
@@ -53,7 +59,6 @@ interface SuggestNamesWithAgentParams {
 interface CreateTicketWorkspaceParams {
   paseo: PaseoApi;
   draft: WorktreeDraft;
-  settings: JiraSettings;
 }
 
 async function fetchGitProjects(paseo: PaseoApi) {
@@ -93,7 +98,7 @@ async function suggestNamesWithAgent({ paseo, issue, settings, cwd }: SuggestNam
   }
 }
 
-async function createTicketWorkspace({ paseo, draft, settings }: CreateTicketWorkspaceParams) {
+async function createTicketWorkspace({ paseo, draft }: CreateTicketWorkspaceParams) {
   const workspace = await paseo.workspaces.create({
     source: {
       kind: "worktree",
@@ -108,9 +113,9 @@ async function createTicketWorkspace({ paseo, draft, settings }: CreateTicketWor
   if (!draft.shouldStartAgent) return { workspace, agent: null };
   const agent = await workspace.agents.create({
     config: {
-      provider: settings.agentProvider,
-      thinkingOptionId: settings.agentThinking || undefined,
-      modeId: settings.agentMode || undefined,
+      provider: draft.agentProvider,
+      thinkingOptionId: draft.agentThinking || undefined,
+      modeId: draft.agentMode || undefined,
     },
   });
   return { workspace, agent };
@@ -129,7 +134,7 @@ export function useStartTicketWorkspace({ navigation }: Pick<PluginScreenProps, 
         !draft && isAgentNamingEnabled ? await queryClient.fetchQuery(buildNamesQuery(issue)) : undefined;
       const resolvedDraft = draft ?? buildDefaultDraft(issue, agentNames);
       if (!resolvedDraft) throw new Error("No git project to branch from.");
-      return createTicketWorkspace({ paseo, draft: resolvedDraft, settings: settings.values });
+      return createTicketWorkspace({ paseo, draft: resolvedDraft });
     },
     onSuccess: ({ workspace, agent }) => {
       toast.show(`Created ${workspace.name}`, { variant: "success" });
@@ -145,6 +150,18 @@ export function useStartTicketWorkspace({ navigation }: Pick<PluginScreenProps, 
     projectList.find((project) => project.projectRootPath === settingsValues?.defaultProjectPath) ?? projectList[0];
 
   const isAgentNamingEnabled = Boolean(settingsValues?.namingPrompt.trim());
+
+  const agentProviderId = settingsValues?.agentProvider.split("/")[0] ?? "";
+  const agentModels = useQuery({
+    queryKey: ["provider-models", agentProviderId],
+    queryFn: () => paseo.providers.listModels(agentProviderId),
+    enabled: Boolean(agentProviderId),
+  });
+  const agentModes = useQuery({
+    queryKey: ["provider-modes", agentProviderId],
+    queryFn: () => paseo.providers.listModes(agentProviderId),
+    enabled: Boolean(agentProviderId),
+  });
 
   /** One naming agent per ticket and naming setup: the list and the ticket detail share the cached answer. */
   function buildNamesQuery(issue: JiraIssue) {
@@ -172,6 +189,9 @@ export function useStartTicketWorkspace({ navigation }: Pick<PluginScreenProps, 
       projectId: defaultProject.projectId,
       baseRef: settingsValues.baseRef,
       shouldStartAgent: true,
+      agentProvider: settingsValues.agentProvider,
+      agentThinking: settingsValues.agentThinking,
+      agentMode: settingsValues.agentMode,
       ...(names ?? suggestRuleNames(issue, settingsValues)),
     };
   }
@@ -180,6 +200,8 @@ export function useStartTicketWorkspace({ navigation }: Pick<PluginScreenProps, 
     projects: projectList,
     agentPromptTemplate: settingsValues?.agentPromptTemplate ?? "",
     isAgentNamingEnabled,
+    agentModels: agentModels.data?.models ?? [],
+    agentModes: agentModes.data?.modes ?? [],
     buildNamesQuery,
     buildDefaultDraft,
     start: startMutation.mutate,

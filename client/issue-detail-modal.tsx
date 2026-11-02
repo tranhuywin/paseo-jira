@@ -10,6 +10,14 @@ import { formatRelativeTime } from "../shared/relative-time";
 import { AssigneeAvatar, IssueTypeIcon, StatusBadge } from "./issue-visuals";
 import type { TicketWorkspaceStarter, WorktreeDraft } from "./start-workspace";
 
+type AgentModel = TicketWorkspaceStarter["agentModels"][number];
+
+/** Keeps the chosen thinking level when the model offers it, else falls back to the model default. */
+function pickThinking(model: AgentModel | undefined, preferred: string): string {
+  const optionIds = model?.thinkingOptions?.map((option) => option.id) ?? [];
+  return optionIds.includes(preferred) ? preferred : (model?.defaultThinkingOptionId ?? "");
+}
+
 interface IssueDetailModalProps {
   theme: PluginTheme;
   issue: JiraIssue | null;
@@ -53,6 +61,9 @@ function IssueDetail({ theme, issue, starter, onClose }: IssueDetailModalProps &
   const updateDraft = (change: Partial<WorktreeDraft>) => setDraftOverrides({ ...draftOverrides, ...change });
   const isStarting = starter.startingIssueKey === issue.key;
   const canStart = Boolean(draft.branchName && draft.worktreeSlug) && !isStarting;
+  const findModel = (agentProvider: string) =>
+    starter.agentModels.find((model) => `${model.provider}/${model.id}` === agentProvider);
+  const thinkingOptions = findModel(draft.agentProvider)?.thinkingOptions ?? [];
 
   return (
     <>
@@ -115,6 +126,32 @@ function IssueDetail({ theme, issue, starter, onClose }: IssueDetailModalProps &
           value={draft.shouldStartAgent}
           onValueChange={(shouldStartAgent) => updateDraft({ shouldStartAgent })}
         />
+        {draft.shouldStartAgent && starter.agentModels.length > 0 ? (
+          <SettingsSelect
+            label="Model"
+            value={draft.agentProvider}
+            options={starter.agentModels.map((model) => ({ label: model.label, value: `${model.provider}/${model.id}` }))}
+            onValueChange={(agentProvider) =>
+              updateDraft({ agentProvider, agentThinking: pickThinking(findModel(agentProvider), draft.agentThinking) })
+            }
+          />
+        ) : null}
+        {draft.shouldStartAgent && thinkingOptions.length > 0 ? (
+          <SettingsSelect
+            label="Thinking"
+            value={draft.agentThinking}
+            options={thinkingOptions.map((option) => ({ label: option.label, value: option.id }))}
+            onValueChange={(agentThinking) => updateDraft({ agentThinking })}
+          />
+        ) : null}
+        {draft.shouldStartAgent && starter.agentModes.length > 0 ? (
+          <SettingsSelect
+            label="Mode"
+            value={draft.agentMode}
+            options={starter.agentModes.map((mode) => ({ label: mode.label, value: mode.id }))}
+            onValueChange={(agentMode) => updateDraft({ agentMode })}
+          />
+        ) : null}
       </SettingsCard>
 
       <Pressable

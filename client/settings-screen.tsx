@@ -46,6 +46,8 @@ const WORKTREE_FIELDS: SettingsField[] = [
   },
   { field: "namingProvider", label: "Naming model", hint: "provider/model. A fast, cheap model is enough." },
   { field: "agentProvider", label: "Agent provider", hint: "provider/model" },
+  { field: "agentThinking", label: "Agent thinking", hint: "low, medium, high, xhigh or max. Empty uses the model default." },
+  { field: "agentMode", label: "Agent mode", hint: "plan, default, acceptEdits, auto or bypassPermissions. Empty uses the provider default." },
   { field: "agentPromptTemplate", label: "Agent prompt", hint: "{key} becomes the ticket key." },
 ];
 

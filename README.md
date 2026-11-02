@@ -49,6 +49,8 @@ Open Settings → Plugins → Jira, fill in the fields below, press **Save**, th
 | Naming prompt | empty | Empty uses the prefixes. Otherwise the naming model gets this prompt with the ticket key, type and summary and returns the branch, worktree and title |
 | Naming model | `claude/claude-haiku-5-5` | `provider/model` used for the naming prompt |
 | Agent provider | `claude/claude-opus-5-5` | `provider/model` used when *Start agent* is on |
+| Agent thinking | `high` | Thinking level for that agent. Empty uses the model default |
+| Agent mode | `auto` | Permission mode for that agent. Empty uses the provider default |
 | Agent prompt | `Work on Jira ticket {key}.` | First prompt; `{key}` becomes the ticket key |
 
 ## Naming

@@ -18,6 +18,8 @@ export const jiraSettings = defineSettings({
     namingPrompt: z.string().default(""),
     namingProvider: z.string().default("claude/claude-haiku-5-5"),
     agentProvider: z.string().default("claude/claude-opus-5-5"),
+    agentThinking: z.string().default("high"),
+    agentMode: z.string().default("auto"),
     agentPromptTemplate: z.string().default("Work on Jira ticket {key}."),
   }),
 });

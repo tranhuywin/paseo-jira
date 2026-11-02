@@ -106,7 +106,13 @@ async function createTicketWorkspace({ paseo, draft, settings }: CreateTicketWor
     title: draft.title,
   });
   if (!draft.shouldStartAgent) return { workspace, agent: null };
-  const agent = await workspace.agents.create({ config: { provider: settings.agentProvider } });
+  const agent = await workspace.agents.create({
+    config: {
+      provider: settings.agentProvider,
+      thinkingOptionId: settings.agentThinking || undefined,
+      modeId: settings.agentMode || undefined,
+    },
+  });
   return { workspace, agent };
 }
 

@@ -2,6 +2,7 @@ import type { PluginClientContext, PluginScreenProps, PluginSidebarItemProps } f
 import { SidebarRow } from "@getpaseo/plugin/client/ui";
 import { IssuesScreen } from "./client/issues-screen";
 import { JiraSettingsScreen } from "./client/settings-screen";
+import { addTicketStatusButtons } from "./client/ticket-status-buttons";
 
 const ISSUES_SCREEN_ID = "issues";
 const SETTINGS_SCREEN_ID = "jira";
@@ -35,5 +36,5 @@ export default function contribute(client: PluginClientContext) {
       openScreen({ screenId: ISSUES_SCREEN_ID });
     },
   });
-  return () => {};
+  return addTicketStatusButtons(client);
 }

@@ -1,11 +1,10 @@
 /// <reference types="node" />
-import type { IssueScope, JiraIssue, StatusCategory } from "../shared/jira";
+import { ISSUE_KEY_PATTERN, type IssueScope, type JiraIssue, type JiraTransition, type StatusCategory } from "../shared/jira";
 import type { JiraSettings } from "../shared/settings";
 
 const ISSUE_FIELDS = ["summary", "issuetype", "status", "updated", "priority", "assignee", "parent", "project"];
 const MAX_RESULTS = 50;
 const ERROR_BODY_PREVIEW_CHARS = 300;
-const ISSUE_KEY_PATTERN = /^[A-Z][A-Z0-9]+-\d+$/i;
 
 interface JiraSearchResponse {
   issues: {
@@ -21,6 +20,22 @@ interface JiraSearchResponse {
       project: { name: string };
     };
   }[];
+}
+
+interface JiraStatus {
+  name: string;
+  statusCategory: { key: string };
+}
+
+interface JiraIssueStatusResponse {
+  fields: { status: JiraStatus };
+  transitions: { id: string; name: string; to: JiraStatus }[];
+}
+
+interface IssueStatus {
+  status: string;
+  statusCategory: StatusCategory;
+  transitions: JiraTransition[];
 }
 
 interface JiraRequest {
@@ -57,7 +72,8 @@ async function requestJira<T>({ settings, path, body }: JiraRequest): Promise<T>
     const detail = (await response.text()).slice(0, ERROR_BODY_PREVIEW_CHARS);
     throw new Error(`Jira ${response.status} on ${path}: ${detail}`);
   }
-  return (await response.json()) as T;
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 function toStatusCategory(key: string): StatusCategory {
@@ -99,4 +115,37 @@ export async function searchIssues(params: SearchIssuesParams): Promise<JiraIssu
 export async function fetchCurrentUserName(settings: JiraSettings): Promise<string> {
   const user = await requestJira<{ displayName: string }>({ settings, path: "/rest/api/3/myself" });
   return user.displayName;
+}
+
+export async function fetchIssueStatus({ settings, key }: { settings: JiraSettings; key: string }): Promise<IssueStatus> {
+  const response = await requestJira<JiraIssueStatusResponse>({
+    settings,
+    path: `/rest/api/3/issue/${encodeURIComponent(key)}?fields=status&expand=transitions`,
+  });
+  return {
+    status: response.fields.status.name,
+    statusCategory: toStatusCategory(response.fields.status.statusCategory.key),
+    transitions: response.transitions.map(({ id, name, to }) => ({
+      id,
+      name,
+      toStatus: to.name,
+      toStatusCategory: toStatusCategory(to.statusCategory.key),
+    })),
+  };
+}
+
+export async function transitionIssue({
+  settings,
+  key,
+  transitionId,
+}: {
+  settings: JiraSettings;
+  key: string;
+  transitionId: string;
+}): Promise<void> {
+  await requestJira<undefined>({
+    settings,
+    path: `/rest/api/3/issue/${encodeURIComponent(key)}/transitions`,
+    body: { transition: { id: transitionId } },
+  });
 }

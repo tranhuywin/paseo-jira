@@ -1,4 +1,5 @@
 import { type PluginButtonContentProps, useRpc } from "@getpaseo/plugin/client";
+import { ExternalLink } from "@getpaseo/plugin/client/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pressable, Text, View } from "react-native";
 import { getIssueStatusRpc, transitionIssueRpc } from "../shared/jira";
@@ -27,18 +28,23 @@ export function TicketStatusPopover({ theme, issueKey, close }: TicketStatusPopo
   if (issueStatus.isPending) return <Text style={mutedText}>Loading {issueKey}…</Text>;
   if (issueStatus.error) return <Text style={mutedText}>{issueStatus.error.message}</Text>;
 
-  const { status, statusCategory, transitions } = issueStatus.data;
+  const { url, status, statusCategory, transitions } = issueStatus.data;
+  // Jira can offer several transitions into one status; one row per target status is enough.
+  const targetTransitions = transitions.filter(
+    (option, index) => transitions.findIndex(({ toStatus }) => toStatus === option.toStatus) === index,
+  );
   return (
     <View style={{ gap: 8, minWidth: 220 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Text style={{ color: theme.colors.foreground, fontSize: 13, fontWeight: "600" }}>{issueKey}</Text>
         <StatusBadge theme={theme} status={status} category={statusCategory} />
       </View>
+      <ExternalLink href={url}>Open in Jira</ExternalLink>
       <Text style={{ color: theme.colors.foregroundMuted, fontSize: 11, fontWeight: "600", letterSpacing: 0.5 }}>
         MOVE TO
       </Text>
-      {transitions.length === 0 ? <Text style={mutedText}>No transitions available.</Text> : null}
-      {transitions.map((option) => (
+      {targetTransitions.length === 0 ? <Text style={mutedText}>No transitions available.</Text> : null}
+      {targetTransitions.map((option) => (
         <Pressable
           key={option.id}
           accessibilityRole="button"
@@ -57,7 +63,6 @@ export function TicketStatusPopover({ theme, issueKey, close }: TicketStatusPopo
           })}
         >
           <StatusBadge theme={theme} status={option.toStatus} category={option.toStatusCategory} />
-          {option.name === option.toStatus ? null : <Text style={mutedText}>{option.name}</Text>}
         </Pressable>
       ))}
       {transition.isPending ? <Text style={mutedText}>Moving…</Text> : null}

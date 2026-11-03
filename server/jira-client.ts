@@ -33,6 +33,7 @@ interface JiraIssueStatusResponse {
 }
 
 interface IssueStatus {
+  url: string;
   status: string;
   statusCategory: StatusCategory;
   transitions: JiraTransition[];
@@ -123,6 +124,7 @@ export async function fetchIssueStatus({ settings, key }: { settings: JiraSettin
     path: `/rest/api/3/issue/${encodeURIComponent(key)}?fields=status&expand=transitions`,
   });
   return {
+    url: `${getSiteUrl(settings)}/browse/${key}`,
     status: response.fields.status.name,
     statusCategory: toStatusCategory(response.fields.status.statusCategory.key),
     transitions: response.transitions.map(({ id, name, to }) => ({

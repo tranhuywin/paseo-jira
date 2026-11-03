@@ -63,6 +63,7 @@ export const getIssueStatusRpc = defineRpc({
   name: "jira.get-issue-status",
   input: z.object({ key: issueKeySchema }),
   output: z.object({
+    url: z.string(),
     status: z.string(),
     statusCategory: statusCategorySchema,
     transitions: z.array(jiraTransitionSchema),

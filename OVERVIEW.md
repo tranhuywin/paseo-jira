@@ -10,7 +10,7 @@ Open Settings → Plugins → Jira and enter your Atlassian site URL, email and 
 - Start on a row creates a workspace with the suggested names and opens an empty agent chat in it. Opening a ticket shows its details and lets you edit the branch, worktree name, title, base ref and project, pick the agent's model, thinking level and mode, or turn off Start agent to only create the workspace.
 - A Bug becomes `<bug prefix>/<KEY>-<slug>`, any other type `<other prefix>/<KEY>-<slug>`. The prefixes default to `fix` and `feature`. Set a Naming prompt to have a fast model write the branch, worktree and title instead.
 - The Command Center item "Jira: worktree from ticket" opens the same screen.
-- A workspace whose branch, or else title, contains a ticket key gets a header button labelled with that key. It shows the current status and the transitions your Jira workflow allows from it; picking one moves the ticket. Transitions that need extra fields on a Jira screen fail with the Jira error.
+- A workspace whose branch, or else title, contains a ticket key gets a header button labelled with that key. It shows the current status and the transitions your Jira workflow allows from it; picking one moves the ticket. Open in Jira opens the ticket in the browser. Transitions that need extra fields on a Jira screen fail with the Jira error.
 
 ## Data flow and limits
 

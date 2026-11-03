@@ -1,5 +1,5 @@
 import type { PluginButtonContentProps, PluginButtonRegistration, PluginClientContext } from "@getpaseo/plugin/client";
-import { findIssueKey, findLeadingBranchIssueKey } from "../shared/jira";
+import { findIssueKey, findLeadingBranchIssueKey, getIssueStatusRpc } from "../shared/jira";
 import { TicketStatusPopover } from "./ticket-status-popover";
 
 type WorkspaceListResult = Awaited<ReturnType<PluginClientContext["paseo"]["workspaces"]["list"]>>;
@@ -17,6 +17,10 @@ interface TicketStatusButton {
 function findWorkspaceIssueKey(workspace: Workspace): string | null {
   const branchName = workspace.gitRuntime?.currentBranch ?? "";
   return findIssueKey(branchName) ?? findIssueKey(workspace.title ?? "") ?? findLeadingBranchIssueKey(branchName);
+}
+
+function formatLabel(issueKey: string, status: string): string {
+  return `${issueKey} · ${status}`;
 }
 
 /** Adds a header button that moves the workspace's Jira ticket through its workflow. */
@@ -44,11 +48,22 @@ export function addTicketStatusButtons(client: PluginClientContext): () => void 
         label: issueKey,
         behavior: {
           kind: "popover",
-          Content: (props: PluginButtonContentProps) => <TicketStatusPopover {...props} issueKey={issueKey} />,
+          Content: (props: PluginButtonContentProps) => (
+            <TicketStatusPopover
+              {...props}
+              issueKey={issueKey}
+              onMoved={(status) => registration.update({ label: formatLabel(issueKey, status) })}
+            />
+          ),
         },
       },
     });
     buttons.set(workspace.id, { issueKey, registration });
+    // On failure the label stays the bare key; the popover surfaces the error when opened.
+    client
+      .rpc(getIssueStatusRpc, { key: issueKey })
+      .then(({ status }) => registration.update({ label: formatLabel(issueKey, status) }))
+      .catch(() => undefined);
   };
 
   void client.paseo.workspaces

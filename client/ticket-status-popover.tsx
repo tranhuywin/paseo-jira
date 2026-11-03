@@ -2,12 +2,12 @@ import { type PluginButtonContentProps, useRpc } from "@getpaseo/plugin/client";
 import { ExternalLink } from "@getpaseo/plugin/client/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pressable, Text, View } from "react-native";
-import { getIssueStatusRpc, transitionIssueRpc } from "../shared/jira";
+import { getIssueStatusRpc, type JiraTransition, transitionIssueRpc } from "../shared/jira";
 import { StatusBadge } from "./issue-visuals";
 
-type TicketStatusPopoverProps = PluginButtonContentProps & { issueKey: string };
+type TicketStatusPopoverProps = PluginButtonContentProps & { issueKey: string; onMoved(status: string): void };
 
-export function TicketStatusPopover({ theme, issueKey, close }: TicketStatusPopoverProps) {
+export function TicketStatusPopover({ theme, issueKey, close, onMoved }: TicketStatusPopoverProps) {
   const getIssueStatus = useRpc(getIssueStatusRpc);
   const transitionIssue = useRpc(transitionIssueRpc);
   const queryClient = useQueryClient();
@@ -16,8 +16,9 @@ export function TicketStatusPopover({ theme, issueKey, close }: TicketStatusPopo
     queryFn: () => getIssueStatus({ key: issueKey }),
   });
   const transition = useMutation({
-    mutationFn: (transitionId: string) => transitionIssue({ key: issueKey, transitionId }),
-    onSuccess: () => {
+    mutationFn: (option: JiraTransition) => transitionIssue({ key: issueKey, transitionId: option.id }),
+    onSuccess: (_, option) => {
+      onMoved(option.toStatus);
       void queryClient.invalidateQueries({ queryKey: ["issue-status", issueKey] });
       void queryClient.invalidateQueries({ queryKey: ["issues"] });
       close();
@@ -50,7 +51,7 @@ export function TicketStatusPopover({ theme, issueKey, close }: TicketStatusPopo
           accessibilityRole="button"
           accessibilityLabel={`Move ${issueKey} to ${option.toStatus}`}
           disabled={transition.isPending}
-          onPress={() => transition.mutate(option.id)}
+          onPress={() => transition.mutate(option)}
           style={({ pressed }) => ({
             flexDirection: "row",
             alignItems: "center",

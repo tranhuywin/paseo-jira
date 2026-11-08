@@ -27,7 +27,7 @@ interface IssuesScreenProps extends PluginScreenProps {
 }
 
 function sortByStatusCategory(issues: JiraIssue[]): JiraIssue[] {
-  return issues.toSorted(
+  return [...issues].sort(
     (a, b) => STATUS_CATEGORY_ORDER.indexOf(a.statusCategory) - STATUS_CATEGORY_ORDER.indexOf(b.statusCategory),
   );
 }
